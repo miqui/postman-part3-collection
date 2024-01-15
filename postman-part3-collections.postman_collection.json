@@ -1,0 +1,360 @@
+{
+	"info": {
+		"_postman_id": "c5b2a1df-cfc1-4048-9261-60d778115f53",
+		"name": "postman-part3-collections",
+		"description": "Collection to determine the temperature of a city (\"known as the target\") based on the temperature of another city (\"known as the source\")\n\nDependencies:\n\n- Environment (host, version)\n- Collection (unit type, below temperate, above temparature, source city, target city1 and city2)\n    \n\nNote: Validation is performed over the collection variables and execution will stop if there are problems with the variable defintion.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38997"
+	},
+	"item": [
+		{
+			"name": "Retrieve_Weather_Source_City",
+			"item": [
+				{
+					"name": "SourceCity",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json();",
+									"let temp = response.main.temp;",
+									"let tempAbove = parseInt(pm.collectionVariables.get('tempAbove'));",
+									"let tempBelow = parseInt(pm.collectionVariables.get('tempBelow'));",
+									"let targetCity1 = pm.collectionVariables.get('targetCity1');",
+									"let targetCity2 = pm.collectionVariables.get('targetCity2');",
+									"let sourceCity = pm.collectionVariables.get('sourceCity');",
+									"",
+									"",
+									"const city = data => data.split(\":\")[0];",
+									"const target = data => data.split(\":\")[1];",
+									"",
+									"console.log(\"Current temperature:\" + sourceCity + \"is:\" + temp);",
+									"",
+									"// Check if the temperature is in a sensible range",
+									"pm.test(\"Temperature is in a sensible range\", function () {",
+									"    pm.expect(temp).to.be.above(tempAbove);",
+									"    pm.expect(temp).to.be.below(tempBelow);",
+									"});",
+									"",
+									"// Set the next request based on the temperature",
+									"if (temp > 60) {",
+									"    //pm.environment.set(\"nextRequest\", \"Bangalore\");",
+									"    postman.setNextRequest(target(targetCity1));",
+									"    console.log(\"get weather for:\" + city(targetCity1));",
+									"} else {",
+									"    //pm.environment.set(\"nextRequest\", \"London\");",
+									"    postman.setNextRequest(target(targetCity2));",
+									"    console.log(\"Get weather for:\" + city(targetCity2));",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"/**",
+									" * Lets do some sanity checks before the request and prevent execution if there is a problem.",
+									" ",
+									" * Refer to: https://learning.postman.com/docs/sending-requests/variables/#defining-collection-variables",
+									" */",
+									"",
+									"// This method of validation works, but can be harder to maintain",
+									"// if the number of collection vars is large",
+									"let value = pm.collectionVariables.get('tempBelow');",
+									"validateVar(value);",
+									"",
+									"// This method is more flexible, but given how the .toObject() method works, it will not cover the case of the collection var being unchecked.",
+									"let myCollVars = pm.collectionVariables.toObject();",
+									"console.log(myCollVars);",
+									"for (let key in myCollVars) {",
+									"    console.log('Key:', key, 'Value:', myCollVars[key]);",
+									"    validateVar(myCollVars[key]);",
+									"}",
+									"",
+									"function validateVar(value) {",
+									"    if (value !== null && value !== undefined) {",
+									"        console.log('Variable exists and has a non-null value:', value);",
+									"    } else if (value === \"\") {",
+									"        console.log('Variable exists but is an empty string - check your collection variables');",
+									"        pm.execution.skipRequest();",
+									"    } else {",
+									"        console.log('Variable exists but its value is null or undefined - check your collection variables');",
+									"        pm.execution.skipRequest();",
+									"    }",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "{{value}}",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "{{key}}",
+									"type": "string"
+								},
+								{
+									"key": "in",
+									"value": "query",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{host}}/data/{{version}}/weather?q={{sourceCity}}&units={{unitType}}",
+							"protocol": "https",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"data",
+								"{{version}}",
+								"weather"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "{{sourceCity}}"
+								},
+								{
+									"key": "units",
+									"value": "{{unitType}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Target_Weather_Cities",
+			"item": [
+				{
+					"name": "Weather_City1",
+					"item": [
+						{
+							"name": "tc1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();",
+											"let temp = response.main.temp;",
+											"",
+											"console.log(\"Current temperature Bangalore is:\" + temp);",
+											"console.log(\"request name:\" + pm.info.requestName);",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "value",
+											"value": "{{value}}",
+											"type": "string"
+										},
+										{
+											"key": "key",
+											"value": "{{key}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "query",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://{{host}}/data/{{version}}/weather?q=Bangalore,India&units={{unitType}}",
+									"protocol": "https",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"data",
+										"{{version}}",
+										"weather"
+									],
+									"query": [
+										{
+											"key": "q",
+											"value": "Bangalore,India"
+										},
+										{
+											"key": "units",
+											"value": "{{unitType}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Weather_City2",
+					"item": [
+						{
+							"name": "tc2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();",
+											"let temp = response.main.temp;",
+											"",
+											"console.log(\"Current temperature London is:\" + temp);",
+											"console.log(\"request name:\" + pm.info.requestName);",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "value",
+											"value": "{{value}}",
+											"type": "string"
+										},
+										{
+											"key": "key",
+											"value": "{{key}}",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "query",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://{{host}}/data/{{version}}/weather?q=London,UK&units={{unitType}}",
+									"protocol": "https",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"data",
+										"{{version}}",
+										"weather"
+									],
+									"query": [
+										{
+											"key": "q",
+											"value": "London,UK"
+										},
+										{
+											"key": "units",
+											"value": "{{unitType}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"/**",
+					" * Please note: Tried a different approach",
+					" * ",
+					" */",
+					"/** ",
+					"let nextRequest = pm.environment.get(\"nextRequest\");",
+					"",
+					"console.log(\"pre-request debug:\" + nextRequest + \" req Name:\" + pm.info.requestName);",
+					"// Skip execution if the next request does not match the current request name",
+					"if (nextRequest && pm.info.requestName == nextRequest) {",
+					"    console.log(\"skip\");",
+					"    postman.setNextRequest(null);",
+					"    //pm.execution.skipRequest();",
+					"}",
+					"*/",
+					"",
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "unitType",
+			"value": "imperial"
+		},
+		{
+			"key": "tempAbove",
+			"value": "-40",
+			"type": "string"
+		},
+		{
+			"key": "tempBelow",
+			"value": "130",
+			"type": "string"
+		},
+		{
+			"key": "sourceCity",
+			"value": "San%20Francisco,US"
+		},
+		{
+			"key": "targetCity1",
+			"value": "Bangalore:tc1",
+			"type": "string"
+		},
+		{
+			"key": "targetCity2",
+			"value": "London:tc2",
+			"type": "string"
+		}
+	]
+}
